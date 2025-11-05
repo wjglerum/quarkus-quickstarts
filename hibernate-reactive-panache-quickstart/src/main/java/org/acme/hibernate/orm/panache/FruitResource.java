@@ -70,7 +70,9 @@ public class FruitResource {
         return Panache
                 .withTransaction(() -> Fruit.<Fruit> findById(id)
                     .onItem().ifNotNull().invoke(entity -> entity.name = fruit.name)
+                    .onItem().invoke(LOGGER::info)
                     .onItem().delayIt().by(Duration.ofSeconds(1))
+                    .onItem().invoke(LOGGER::info)
                 )
                 .onItem().ifNotNull().transform(entity -> Response.ok(entity).build())
                 .onItem().ifNull().continueWith(Response.ok().status(NOT_FOUND)::build);
