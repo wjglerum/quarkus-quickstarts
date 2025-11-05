@@ -4,6 +4,7 @@ import static jakarta.ws.rs.core.Response.Status.CREATED;
 import static jakarta.ws.rs.core.Response.Status.NOT_FOUND;
 import static jakarta.ws.rs.core.Response.Status.NO_CONTENT;
 
+import java.time.Duration;
 import java.util.List;
 
 import jakarta.enterprise.context.ApplicationScoped;
@@ -69,6 +70,7 @@ public class FruitResource {
         return Panache
                 .withTransaction(() -> Fruit.<Fruit> findById(id)
                     .onItem().ifNotNull().invoke(entity -> entity.name = fruit.name)
+                    .onItem().delayIt().by(Duration.ofSeconds(1))
                 )
                 .onItem().ifNotNull().transform(entity -> Response.ok(entity).build())
                 .onItem().ifNull().continueWith(Response.ok().status(NOT_FOUND)::build);
