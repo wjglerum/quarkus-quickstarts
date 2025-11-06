@@ -7,6 +7,8 @@ import static jakarta.ws.rs.core.Response.Status.NO_CONTENT;
 import java.time.Duration;
 import java.util.List;
 
+import io.smallrye.mutiny.infrastructure.Infrastructure;
+import io.smallrye.mutiny.vertx.core.ContextAwareScheduler;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
@@ -71,7 +73,9 @@ public class FruitResource {
                 .withTransaction(() -> Fruit.<Fruit> findById(id)
                     .onItem().ifNotNull().invoke(entity -> entity.name = fruit.name)
                     .onItem().invoke(LOGGER::info)
-                    .onItem().delayIt().by(Duration.ofSeconds(1))
+                    .onItem().delayIt()
+                    .onExecutor(ContextAwareScheduler.delegatingTo(Infrastructure.getDefaultWorkerPool()).withCurrentContext())
+                    .by(Duration.ofSeconds(1))
                     .onItem().invoke(LOGGER::info)
                 )
                 .onItem().ifNotNull().transform(entity -> Response.ok(entity).build())
